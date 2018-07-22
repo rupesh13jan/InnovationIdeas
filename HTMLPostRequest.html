@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <title>Create post by user ID</title>
+    <style type="text/css">
+       body {
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      input[type=text],
+      input[type=number] {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+      }
+
+      input[type=submit] {
+        background-color: #4CAF50;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+      }
+
+      input[type=submit]:hover {
+        opacity: 0.8;
+      }
+
+      .container {
+        padding: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <form id="UserInfoForm" action="" onsubmit="return false;">
+        <div>
+          <label for="name"><b>Name</b></label>
+          <input id="name" type="text" placeholder="Enter your name" name="name" required />
+        </div>
+        <div>
+          <label for="group"><b>Group</b></label>
+          <input id="group" type="text" placeholder="Enter your group" name="group" required />
+        </div>
+        <div>
+          <label for="value"><b>Value</b></label>
+          <input id="value" type="number" placeholder="Enter your Value" name="value" required />
+        </div>
+        <div>
+          <input type="submit" value="Submit" name="submit" onclick="onSubmit();" />
+        </div>
+      </form>
+
+      <p id="output"></p>
+    </div>
+    <script>
+      'use strict';
+
+      var allPosts = [];
+      var url = "https://jsonplaceholder.typicode.com/posts";
+
+      function parseJSON(jsonString) {
+        return JSON.parse(jsonString);
+      }
+
+      (function ready(fn) {
+        if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading"){
+          fn();
+        } else {
+          document.addEventListener('DOMContentLoaded', fn);
+        }
+      })(function() {
+        var request = new XMLHttpRequest();
+
+        request.open('GET', url, true);
+        request.onload = function() {
+          if (request.status >= 200 && request.status < 400) {
+            allPosts = parseJSON(request.responseText);
+          } else {
+            console.log('We reached the target server, but it returned an error');
+          }
+        };
+
+        request.onerror = function() {
+          console.log('There was a connection error of some sort');
+        };
+
+        request.send();
+      });
+
+      // On submit method store the form data
+      function onSubmit() {
+        var form = document.forms.UserInfoForm;
+        var isFormValid = form.checkValidity();
+
+        if (isFormValid) {
+          var formData = new FormData(form);
+
+          var userId = formData.get('value');
+          var title = formData.get('name');
+          var body = formData.get('group');
+
+          var nextID = allPosts.length + 1;
+
+          var data = {
+            "userId": userId,
+            "id": nextID,
+            "title": title,
+            "body": body
+          };
+
+          var request = new XMLHttpRequest();
+
+          request.open('POST', url, true);
+          request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+          request.onload = function() {
+            if (request.status >= 200 && request.status < 400) {
+              const responseJson = parseJSON(request.responseText);
+
+              allPosts.push(responseJson);
+              console.log('Updated JSON Object here...', allPosts);
+
+              // Print the output
+              document.getElementById("output").innerHTML = "ID :" + responseJson.id + " " + 
+                                                            "User ID :" + responseJson.userId + " " + 
+                                                            "Tittle :" + responseJson.title + " " + 
+                                                            "Body :" + responseJson.body;
+            } else {
+              console.log('We reached the target server, but it returned an error');
+            }
+          };
+          request.send(JSON.stringify(data));
+
+          // For resetting the form
+          // form.reset();
+        }
+
+        return false;
+      }
+    </script>
+  </body>
+</html>
+
+
